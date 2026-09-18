@@ -1,0 +1,63 @@
+{
+  "template_key": "service_advisor",
+  "version": 1,
+  "title": "Service Advisor Interview",
+  "status": "published",
+  "applies_to": {
+    "department": "service",
+    "positions": ["service advisor","advisor","asm","assistant service manager",
+                  "service consultant","service writer","writer"]
+  },
+  "sections": [
+    { "title": "Background",
+      "questions": [
+        { "key": "tenure_company", "required": true },
+        { "key": "background_experience" },
+        { "key": "has_job_description", "required": true },
+        { "key": "typical_day" }
+      ] },
+    { "title": "Process",
+      "questions": [
+        { "key": "uses_service_menu", "required": true },
+        { "key": "service_menu_current",
+          "show_if": { "key": "uses_service_menu", "op": "eq", "value": "yes" } },
+        { "key": "inspection_every_ro", "required": true },
+        { "key": "inspection_exceptions" },
+        { "key": "inspection_process", "required": true },
+        { "key": "inspection_notify_timing" }
+      ] },
+    { "title": "Working Relationships",
+      "questions": [
+        { "key": "rel_parts_service", "required": true,
+          "prompt_override": "Rate the working relationship between Advisors and Parts." },
+        { "key": "rel_service_sales", "required": true,
+          "prompt_override": "Rate the working relationship between Service and Sales." },
+        { "key": "rel_advisors_techs", "required": true,
+          "prompt_override": "Rate the working relationship between Advisors and Technicians." },
+        { "key": "improve_teamwork" }
+      ] },
+    { "title": "Leadership",
+      "questions": [
+        { "key": "sm_accountability_style", "required": true,
+          "prompt_override": "How is the SM when holding you accountable?" },
+        { "key": "sm_strengths" },
+        { "key": "sm_opportunities" }
+      ] },
+    { "title": "Technicians",
+      "questions": [
+        { "key": "nominate_strongest_tech",
+          "prompt_override": "Strongest tech on the team" },
+        { "key": "nominate_strongest_tech_why" },
+        { "key": "nominate_support_tech" },
+        { "key": "nominate_support_tech_why" }
+      ] },
+    { "title": "Closing",
+      "questions": [
+        { "key": "if_you_owned_it", "required": true },
+        { "key": "if_you_owned_it_why" }
+      ] },
+    { "title": "Interviewer Notes",
+      "internal_only": true,
+      "questions": [ { "key": "interviewer_notes" } ] }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "template_key": "technician",
+  "version": 1,
+  "title": "Technician Interview",
+  "status": "published",
+  "applies_to": {
+    "department": "service",
+    "positions": ["technician","tech","master tech","master technician","lube tech",
+                  "apprentice tech","a tech","b tech","c tech","line tech","diagnostic tech",
+                  "shop foreman","lead tech","senior tech"]
+  },
+  "sections": [
+    { "title": "Background",
+      "questions": [
+        { "key": "tenure_company", "required": true },
+        { "key": "career_origin" },
+        { "key": "preferred_work_type" }
+      ] },
+    { "title": "Productivity",
+      "questions": [
+        { "key": "self_productivity", "required": true },
+        { "key": "biggest_slowdown", "required": true },
+        { "key": "pay_structure", "required": true,
+          "prompt_override": "How are you currently paid?" },
+        { "key": "avg_flagged_hours" },
+        { "key": "flag_hours_blockers" },
+        { "key": "work_assignment_method" },
+        { "key": "help_escalation" },
+        { "key": "job_easier_lever" }
+      ] },
+    { "title": "Dispatch & Parts",
+      "questions": [
+        { "key": "dispatch_rating", "required": true },
+        { "key": "dispatch_improvement",
+          "show_if": { "key": "dispatch_rating", "op": "lt", "value": 2 } },
+        { "key": "parts_delivered_to_stall", "required": true,
+          "prompt_override": "Are parts delivered to your stall?" },
+        { "key": "parts_delay_cause",
+          "prompt_override": "Is there anything parts related that slows you down?" }
+      ] },
+    { "title": "Service Advisors",
+      "questions": [
+        { "key": "advisor_info_quality", "required": true },
+        { "key": "nominate_strongest_advisor" },
+        { "key": "nominate_strongest_advisor_why" },
+        { "key": "nominate_support_advisor" },
+        { "key": "nominate_support_advisor_why" },
+        { "key": "comm_with_advisors", "required": true }
+      ] },
+    { "title": "Team & Leadership",
+      "questions": [
+        { "key": "mentors_junior_techs",
+          "prompt_override": "Master techs: do you help train or support less-experienced technicians?" },
+        { "key": "rel_parts_service", "required": true },
+        { "key": "sm_accountability_style", "required": true,
+          "prompt_override": "How is the SM when holding you accountable?" },
+        { "key": "sm_approachable" },
+        { "key": "if_you_owned_it", "required": true,
+          "prompt_override": "If you owned the dealership, what would you change?" },
+        { "key": "if_you_owned_it_why" }
+      ] },
+    { "title": "Interviewer Notes",
+      "internal_only": true,
+      "questions": [ { "key": "interviewer_notes" } ] }
+  ]
+}

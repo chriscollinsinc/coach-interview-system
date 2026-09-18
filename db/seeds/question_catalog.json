@@ -1,0 +1,615 @@
+{
+  "_readme": [
+    "Canonical question catalog. One entry per question CONCEPT, shared across every survey.",
+    "analysis.dimension is the comparison axis: any question carrying the same dimension pools",
+    "into the same cross-role chart regardless of which survey it came from. Add a Service",
+    "Manager survey later that includes rel_parts_service and the SM's rating drops into the",
+    "existing gap chart with zero code changes.",
+    "polarity 'higher_is_better' tells the dashboard which direction is good.",
+    "verbatim:true marks free text worth quoting in the narrative analysis."
+  ],
+
+  "questions": [
+    {
+      "key": "tenure_company",
+      "prompt": "Time with company",
+      "type": "short_text",
+      "help_text": "e.g. 3 years, 8 months",
+      "analysis": { "dimension": "tenure", "compare_across_roles": true }
+    },
+
+    {
+      "key": "has_job_description",
+      "prompt": "Do you have a written job description?",
+      "type": "yes_no",
+      "analysis": { "dimension": "job_description_exists", "compare_across_roles": true,
+                    "polarity": "yes_is_better" }
+    },
+
+    {
+      "key": "pay_structure",
+      "prompt": "How are you paid?",
+      "type": "single_select",
+      "allow_other": true,
+      "options": [
+        { "value": "flat_rate",  "label": "Flat Rate" },
+        { "value": "hourly",     "label": "Hourly" },
+        { "value": "salary",     "label": "Salary" },
+        { "value": "commission", "label": "Commission" }
+      ],
+      "analysis": { "dimension": "pay_structure", "compare_across_roles": true }
+    },
+
+    { "key": "primary_role_support",
+      "prompt": "What is your primary role / area of responsibility?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "porter",    "label": "Porter" },
+        { "value": "warranty",  "label": "Warranty / Admin" },
+        { "value": "bdc",       "label": "BDC" },
+        { "value": "cashier",   "label": "Cashier" }
+      ]
+    },
+
+    { "key": "primary_role_parts",
+      "prompt": "What is your primary role / area of responsibility?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "counter",   "label": "Counter" },
+        { "value": "driver",    "label": "Driver" },
+        { "value": "warehouse", "label": "Warehouse / Stock" },
+        { "value": "wholesale", "label": "Wholesale" }
+      ]
+    },
+
+    { "key": "background_experience",
+      "prompt": "Tell me about your background and experience.",
+      "type": "long_text",
+      "analysis": { "verbatim": true } },
+
+    { "key": "career_origin",
+      "prompt": "What got you into teching?",
+      "type": "long_text",
+      "analysis": { "verbatim": true } },
+
+    { "key": "career_outlook_1yr",
+      "prompt": "Where do you see yourself in a year?",
+      "type": "long_text",
+      "analysis": { "dimension": "retention_signal", "verbatim": true } },
+
+    { "key": "typical_day",
+      "prompt": "Walk me through your typical day.",
+      "type": "long_text",
+      "analysis": { "verbatim": true } },
+
+    { "key": "preferred_work_type",
+      "prompt": "What type of work do you like to do most?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "maintenance", "label": "Maintenance" },
+        { "value": "mechanical",  "label": "Mechanical" },
+        { "value": "electrical",  "label": "Electrical / Diagnostic" }
+      ] },
+
+    { "key": "work_interruptions",
+      "prompt": "Is there anything that slows down or interrupts your work?",
+      "type": "long_text",
+      "analysis": { "dimension": "productivity_blocker", "verbatim": true } },
+
+    { "key": "self_productivity",
+      "prompt": "How would you rate your overall ability to stay productive?",
+      "type": "rating",
+      "scale": { "min": 1, "max": 3,
+                 "labels": { "1": "Poor", "2": "Average", "3": "Excellent" } },
+      "analysis": { "dimension": "self_productivity", "polarity": "higher_is_better" } },
+
+    { "key": "biggest_slowdown",
+      "prompt": "What is the biggest thing that slows you down?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "parts",      "label": "Parts" },
+        { "value": "dispatch",   "label": "Dispatch" },
+        { "value": "approvals",  "label": "Approvals" },
+        { "value": "advisor",    "label": "Advisor" },
+        { "value": "tools",      "label": "Tools / Equipment" },
+        { "value": "workload",   "label": "Workload" }
+      ],
+      "analysis": { "dimension": "productivity_blocker", "compare_across_roles": true } },
+
+    { "key": "avg_flagged_hours",
+      "prompt": "Average flagged hours per week",
+      "type": "number",
+      "help_text": "Hours",
+      "analysis": { "dimension": "flagged_hours" } },
+
+    { "key": "flag_hours_blockers",
+      "prompt": "What most affects your ability to flag hours?",
+      "type": "multi_select",
+      "options": [
+        { "value": "lack_of_work",   "label": "Lack of work" },
+        { "value": "parts_delays",   "label": "Parts delays" },
+        { "value": "dispatch",       "label": "Dispatch" },
+        { "value": "approvals",      "label": "Approvals" },
+        { "value": "diag_time",      "label": "Diagnostic time" },
+        { "value": "tools",          "label": "Tools / Equipment" },
+        { "value": "advisor_comm",   "label": "Advisor communication" },
+        { "value": "rework",         "label": "Rework / Comebacks" },
+        { "value": "all_of_above",   "label": "All of the above" }
+      ],
+      "analysis": { "dimension": "productivity_blocker", "compare_across_roles": true } },
+
+    { "key": "work_assignment_method",
+      "prompt": "How is work typically assigned to you?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "advisor",     "label": "Advisor" },
+        { "value": "dispatcher",  "label": "Dispatcher" },
+        { "value": "tech_pulls",  "label": "Technician pulls work" }
+      ] },
+
+    { "key": "help_escalation",
+      "prompt": "Who do you go to when you need help?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "lead_tech", "label": "Lead / Senior Tech" },
+        { "value": "advisor",   "label": "Advisor" },
+        { "value": "manager",   "label": "Manager" }
+      ] },
+
+    { "key": "job_easier_lever",
+      "prompt": "What is one thing that would make your job easier?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "parts",         "label": "Parts" },
+        { "value": "tools",         "label": "Tools" },
+        { "value": "training",      "label": "Training" },
+        { "value": "communication", "label": "Communication" },
+        { "value": "workflow",      "label": "Workflow" }
+      ],
+      "analysis": { "dimension": "improvement_lever" } },
+
+    { "key": "dispatch_rating",
+      "prompt": "How would you rate the dispatch process?",
+      "type": "rating",
+      "scale": { "min": 1, "max": 3,
+                 "labels": { "1": "Poor", "2": "Average", "3": "Excellent" } },
+      "analysis": { "dimension": "dispatch_quality", "polarity": "higher_is_better",
+                    "compare_across_roles": true } },
+
+    { "key": "dispatch_improvement",
+      "prompt": "What would improve the dispatch process?",
+      "type": "long_text",
+      "help_text": "Asked when dispatch is rated below Excellent.",
+      "analysis": { "dimension": "dispatch_quality", "verbatim": true } },
+
+    { "key": "checkin_authority",
+      "prompt": "Do you have to check in with anyone when you come in?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "advisor",       "label": "Advisor" },
+        { "value": "manager",       "label": "Manager" },
+        { "value": "dispatcher",    "label": "Dispatcher" },
+        { "value": "self_directed", "label": "Self-Directed" }
+      ] },
+
+    { "key": "primary_interaction",
+      "prompt": "Who do you interact with most in your role?",
+      "type": "multi_select", "allow_other": true,
+      "options": [
+        { "value": "advisors",   "label": "Service Advisors" },
+        { "value": "technicians","label": "Technicians" },
+        { "value": "parts",      "label": "Parts" },
+        { "value": "management", "label": "Management" },
+        { "value": "customers",  "label": "Customers" }
+      ] },
+
+    {
+      "key": "rel_parts_service",
+      "prompt": "How would you rate the working relationship between Parts and Service?",
+      "type": "rating",
+      "scale": { "min": 1, "max": 3,
+                 "labels": { "1": "Poor", "2": "Average", "3": "Excellent" } },
+      "analysis": { "dimension": "parts_service_relationship",
+                    "compare_across_roles": true, "polarity": "higher_is_better",
+                    "headline": true }
+    },
+
+    { "key": "rel_with_advisors",
+      "prompt": "How would you rate your relationship with Service Advisors?",
+      "type": "rating",
+      "scale": { "min": 1, "max": 3,
+                 "labels": { "1": "Poor", "2": "Average", "3": "Excellent" } },
+      "analysis": { "dimension": "advisor_relationship", "compare_across_roles": true,
+                    "polarity": "higher_is_better" } },
+
+    { "key": "comm_with_advisors",
+      "prompt": "How would you rate communication with Service Advisors?",
+      "type": "rating",
+      "scale": { "min": 1, "max": 3,
+                 "labels": { "1": "Poor", "2": "Average", "3": "Excellent" } },
+      "analysis": { "dimension": "advisor_communication", "compare_across_roles": true,
+                    "polarity": "higher_is_better", "headline": true } },
+
+    { "key": "comm_with_techs",
+      "prompt": "How would you rate communication with Technicians?",
+      "type": "rating",
+      "scale": { "min": 1, "max": 3,
+                 "labels": { "1": "Poor", "2": "Average", "3": "Excellent" } },
+      "analysis": { "dimension": "tech_communication", "compare_across_roles": true,
+                    "polarity": "higher_is_better" } },
+
+    { "key": "rel_advisors_techs",
+      "prompt": "How would you rate the working relationship between Advisors and Technicians?",
+      "type": "rating",
+      "scale": { "min": 1, "max": 3,
+                 "labels": { "1": "Poor", "2": "Average", "3": "Excellent" } },
+      "analysis": { "dimension": "advisor_tech_relationship", "compare_across_roles": true,
+                    "polarity": "higher_is_better", "headline": true } },
+
+    { "key": "rel_service_sales",
+      "prompt": "How would you rate the working relationship between Service and Sales?",
+      "type": "rating",
+      "scale": { "min": 1, "max": 3,
+                 "labels": { "1": "Poor", "2": "Average", "3": "Excellent" } },
+      "analysis": { "dimension": "service_sales_relationship", "compare_across_roles": true,
+                    "polarity": "higher_is_better" } },
+
+    { "key": "dept_cohesion",
+      "prompt": "How well does the Service Department work together? Well-oiled machine, or needs some help?",
+      "type": "long_text",
+      "analysis": { "dimension": "department_cohesion", "verbatim": true } },
+
+    { "key": "biggest_comm_gap",
+      "prompt": "Where do you see the biggest communication gap?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "advisors",    "label": "Advisors" },
+        { "value": "technicians", "label": "Technicians" },
+        { "value": "parts",       "label": "Parts" },
+        { "value": "management",  "label": "Management" }
+      ],
+      "analysis": { "dimension": "communication_gap", "compare_across_roles": true } },
+
+    { "key": "improve_teamwork",
+      "prompt": "What would improve teamwork between departments?",
+      "type": "long_text",
+      "analysis": { "dimension": "department_cohesion", "verbatim": true } },
+
+    { "key": "parts_requisition_used",
+      "prompt": "Do technicians use parts requisition forms?",
+      "type": "single_select",
+      "options": [
+        { "value": "yes",       "label": "Yes" },
+        { "value": "no",        "label": "No" },
+        { "value": "sometimes", "label": "Sometimes" }
+      ],
+      "analysis": { "dimension": "parts_process_discipline", "compare_across_roles": true } },
+
+    { "key": "parts_prepulled",
+      "prompt": "Are parts pre-pulled or pre-packaged for scheduled work?",
+      "type": "single_select",
+      "options": [
+        { "value": "yes",       "label": "Yes" },
+        { "value": "no",        "label": "No" },
+        { "value": "sometimes", "label": "Sometimes" }
+      ],
+      "analysis": { "dimension": "parts_process_discipline", "compare_across_roles": true } },
+
+    {
+      "key": "parts_delivered_to_stall",
+      "prompt": "Are parts delivered to the technician's stall?",
+      "type": "single_select",
+      "options": [
+        { "value": "yes",       "label": "Yes" },
+        { "value": "no",        "label": "No" },
+        { "value": "sometimes", "label": "Sometimes" }
+      ],
+      "analysis": { "dimension": "parts_delivery", "compare_across_roles": true,
+                    "headline": true,
+                    "note": "Asked of both Parts and Technicians. A Parts 'yes' against a Technician 'no' is the finding." }
+    },
+
+    {
+      "key": "parts_delay_cause",
+      "prompt": "What causes the most common delays in getting parts to technicians?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "availability",  "label": "Availability" },
+        { "value": "incorrect",     "label": "Incorrect parts" },
+        { "value": "wait_time",     "label": "Wait time" },
+        { "value": "communication", "label": "Communication" },
+        { "value": "none",          "label": "None" }
+      ],
+      "analysis": { "dimension": "parts_delay_cause", "compare_across_roles": true,
+                    "headline": true,
+                    "note": "Mirror question. Parts and Technicians frequently name different causes." }
+    },
+
+    { "key": "techs_could_improve",
+      "prompt": "Anything the techs could do to make your life easier?",
+      "type": "long_text",
+      "analysis": { "verbatim": true } },
+
+    { "key": "advisors_slow_me_down",
+      "prompt": "What do advisors do that slows you down?",
+      "type": "long_text",
+      "analysis": { "dimension": "productivity_blocker", "verbatim": true } },
+
+    { "key": "improve_parts_service",
+      "prompt": "What would improve the relationship between Parts and Service?",
+      "type": "long_text",
+      "analysis": { "dimension": "parts_service_relationship", "verbatim": true } },
+
+    { "key": "shop_supplies_billing",
+      "prompt": "Are shop supplies (brake clean, gloves, top-off items) billed out?",
+      "type": "single_select",
+      "options": [
+        { "value": "yes",    "label": "Yes" },
+        { "value": "no",     "label": "No" },
+        { "value": "shared", "label": "Shared responsibility" }
+      ],
+      "help_text": "Paper form asked 'How are shop supplies billed?' with Yes/No answers. Reworded to match the options.",
+      "analysis": { "dimension": "shop_supplies" } },
+
+    { "key": "parts_incentive_program",
+      "prompt": "Is there an incentive program for additional parts sales?",
+      "type": "yes_no",
+      "analysis": { "dimension": "parts_incentive" } },
+
+    { "key": "uses_service_menu",
+      "prompt": "Do you use a service menu?",
+      "type": "yes_no",
+      "analysis": { "dimension": "service_menu", "compare_across_roles": true } },
+
+    { "key": "service_menu_current",
+      "prompt": "Is the service menu current?",
+      "type": "single_select",
+      "options": [
+        { "value": "yes",      "label": "Yes" },
+        { "value": "no",       "label": "No" },
+        { "value": "not_sure", "label": "Not sure" }
+      ],
+      "analysis": { "dimension": "service_menu" } },
+
+    { "key": "inspection_every_ro",
+      "prompt": "Do technicians complete an inspection on every applicable RO?",
+      "type": "yes_no",
+      "analysis": { "dimension": "inspection_discipline", "compare_across_roles": true } },
+
+    { "key": "inspection_exceptions",
+      "prompt": "When is an inspection deemed unnecessary?",
+      "type": "long_text",
+      "analysis": { "dimension": "inspection_discipline", "verbatim": true } },
+
+    { "key": "inspection_process",
+      "prompt": "What inspection process is used?",
+      "type": "single_select",
+      "options": [
+        { "value": "digital", "label": "Digital" },
+        { "value": "paper",   "label": "Paper" },
+        { "value": "both",    "label": "Both" },
+        { "value": "none",    "label": "None" }
+      ],
+      "analysis": { "dimension": "inspection_discipline", "compare_across_roles": true } },
+
+    { "key": "inspection_notify_timing",
+      "prompt": "When are customers notified of inspection results?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "during_visit", "label": "During the visit" },
+        { "value": "at_pickup",    "label": "At pickup" }
+      ],
+      "analysis": { "dimension": "inspection_discipline" } },
+
+    { "key": "advisor_info_quality",
+      "prompt": "Do Service Advisors provide enough information to diagnose and repair efficiently?",
+      "type": "single_select",
+      "options": [
+        { "value": "yes",       "label": "Yes" },
+        { "value": "no",        "label": "No" },
+        { "value": "sometimes", "label": "Sometimes" }
+      ],
+      "analysis": { "dimension": "advisor_communication", "compare_across_roles": true } },
+
+    { "key": "mentors_junior_techs",
+      "prompt": "Do you help train or support less-experienced technicians?",
+      "type": "single_select",
+      "options": [
+        { "value": "yes",       "label": "Yes" },
+        { "value": "no",        "label": "No" },
+        { "value": "sometimes", "label": "Sometimes" }
+      ],
+      "help_text": "Master technicians.",
+      "analysis": { "dimension": "mentorship" } },
+
+    {
+      "key": "nominate_strongest_advisor",
+      "prompt": "Strongest Service Advisor",
+      "type": "employee_ref",
+      "ref_filter": { "template_key": "service_advisor" },
+      "nomination": { "target": "advisor", "direction": "strongest" },
+      "analysis": { "dimension": "advisor_standing", "headline": true }
+    },
+    { "key": "nominate_strongest_advisor_why",
+      "prompt": "What about this advisor makes them the strongest?",
+      "type": "long_text",
+      "analysis": { "dimension": "advisor_standing", "verbatim": true,
+                    "reason_for": "nominate_strongest_advisor" } },
+
+    {
+      "key": "nominate_support_advisor",
+      "prompt": "Service Advisor who needs the most support",
+      "type": "employee_ref",
+      "ref_filter": { "template_key": "service_advisor" },
+      "nomination": { "target": "advisor", "direction": "needs_support" },
+      "analysis": { "dimension": "advisor_standing", "headline": true }
+    },
+    { "key": "nominate_support_advisor_why",
+      "prompt": "What support would help this advisor work better with you?",
+      "type": "long_text",
+      "analysis": { "dimension": "advisor_standing", "verbatim": true,
+                    "reason_for": "nominate_support_advisor" } },
+
+    {
+      "key": "nominate_strongest_tech",
+      "prompt": "Strongest technician on the team",
+      "type": "employee_ref",
+      "ref_filter": { "template_key": "technician" },
+      "nomination": { "target": "technician", "direction": "strongest" },
+      "analysis": { "dimension": "tech_standing", "headline": true }
+    },
+    { "key": "nominate_strongest_tech_why",
+      "prompt": "What makes them the strongest?",
+      "type": "long_text",
+      "analysis": { "dimension": "tech_standing", "verbatim": true,
+                    "reason_for": "nominate_strongest_tech" } },
+
+    {
+      "key": "nominate_support_tech",
+      "prompt": "Technician who needs the most support",
+      "type": "employee_ref",
+      "ref_filter": { "template_key": "technician" },
+      "nomination": { "target": "technician", "direction": "needs_support" },
+      "analysis": { "dimension": "tech_standing", "headline": true }
+    },
+    { "key": "nominate_support_tech_why",
+      "prompt": "What support would help them the most?",
+      "type": "long_text",
+      "analysis": { "dimension": "tech_standing", "verbatim": true,
+                    "reason_for": "nominate_support_tech" } },
+
+    {
+      "key": "sm_accountability_style",
+      "prompt": "How is the Service Manager when they need to hold you accountable?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "aggressive",     "label": "Aggressive" },
+        { "value": "no_accountability","label": "Doesn't hold accountable" },
+        { "value": "supportive",     "label": "Supportive" }
+      ],
+      "analysis": { "dimension": "sm_accountability", "compare_across_roles": true,
+                    "headline": true }
+    },
+
+    { "key": "sm_approachable",
+      "prompt": "Is the Service Manager approachable? Elaborate.",
+      "type": "long_text",
+      "analysis": { "dimension": "sm_leadership", "verbatim": true } },
+
+    { "key": "sm_strengths",
+      "prompt": "What are the Service Manager's strengths?",
+      "type": "long_text",
+      "analysis": { "dimension": "sm_leadership", "verbatim": true } },
+
+    { "key": "sm_opportunities",
+      "prompt": "Service Manager — opportunities for improvement",
+      "type": "long_text",
+      "analysis": { "dimension": "sm_leadership", "verbatim": true } },
+
+    { "key": "leadership_clarity",
+      "prompt": "Does leadership communicate expectations clearly?",
+      "type": "single_select",
+      "options": [
+        { "value": "yes",       "label": "Yes" },
+        { "value": "no",        "label": "No" },
+        { "value": "sometimes", "label": "Sometimes" }
+      ],
+      "analysis": { "dimension": "leadership_clarity", "compare_across_roles": true } },
+
+    { "key": "pm_leadership_style",
+      "prompt": "How would you describe the Parts Manager's leadership style?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "easygoing", "label": "Easygoing" },
+        { "value": "firm",      "label": "Firm" },
+        { "value": "demanding", "label": "Demanding" }
+      ],
+      "analysis": { "dimension": "pm_leadership" } },
+
+    { "key": "pm_strengths",
+      "prompt": "What are the Parts Manager's strengths?",
+      "type": "long_text",
+      "analysis": { "dimension": "pm_leadership", "verbatim": true } },
+
+    { "key": "pm_opportunities",
+      "prompt": "Parts Manager — opportunities for improvement",
+      "type": "long_text",
+      "analysis": { "dimension": "pm_leadership", "verbatim": true } },
+
+    {
+      "key": "if_you_owned_it",
+      "prompt": "If you owned the dealership, what is the first thing you would change?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "people",        "label": "People" },
+        { "value": "process",       "label": "Process" },
+        { "value": "communication", "label": "Communication" },
+        { "value": "tools",         "label": "Tools / Equipment" },
+        { "value": "parts",         "label": "Parts" },
+        { "value": "dispatch",      "label": "Dispatch" }
+      ],
+      "analysis": { "dimension": "change_priority", "compare_across_roles": true,
+                    "headline": true }
+    },
+    { "key": "if_you_owned_it_why",
+      "prompt": "Tell me more about that.",
+      "type": "long_text",
+      "analysis": { "dimension": "change_priority", "verbatim": true,
+                    "reason_for": "if_you_owned_it" } },
+
+    {
+      "key": "biggest_improvement_opportunity",
+      "prompt": "What is the biggest opportunity to improve how the department works together?",
+      "type": "single_select", "allow_other": true,
+      "options": [
+        { "value": "communication",  "label": "Communication" },
+        { "value": "process",        "label": "Process" },
+        { "value": "teamwork",       "label": "Teamwork" },
+        { "value": "leadership",     "label": "Leadership" },
+        { "value": "accountability", "label": "Accountability" }
+      ],
+      "analysis": { "dimension": "change_priority", "compare_across_roles": true }
+    },
+
+    {
+      "key": "interviewer_notes",
+      "prompt": "Notes / observations",
+      "type": "long_text",
+      "help_text": "Interviewer only. Never included in any client-facing export.",
+      "analysis": { "internal_only": true, "verbatim": true }
+    }
+  ],
+
+  "_data_quality_flags": [
+    {
+      "form": "Technician_Assessment_Form_APPROVED.docx",
+      "issue": "Communication with Service Advisors is asked twice — once as 'How would you rate communication with Service Advisors?' and again as 'How would you rate communication between technicians and Service Advisors?'. Seeded once as comm_with_advisors. Confirm the duplicate was unintentional.",
+      "resolution": "deduplicated"
+    },
+    {
+      "form": "Technician_Assessment_Form_APPROVED.docx",
+      "issue": "Three rating questions are printed with 'Rating:  Rating:' doubled.",
+      "resolution": "cleaned"
+    },
+    {
+      "form": "Parts_Assessment_Form.docx",
+      "issue": "'How are shop supplies billed?' offers Yes / No / Shared responsibility, which do not answer a 'how' question.",
+      "resolution": "reworded to 'Are shop supplies billed out?' — change the catalog prompt if you meant something else"
+    },
+    {
+      "form": "Technician_Assessment_Form_APPROVED.docx",
+      "issue": "Dispatch rating carries an inline conditional: '(if <2 what can improve?)'.",
+      "resolution": "modeled as dispatch_improvement with show_if rating < 2"
+    },
+    {
+      "form": "Service_Advisor_Assessment_Form.docx",
+      "issue": "'Do technicians complete an inspection on every applicable RO? When is it deemed unnecessary?' packs two questions into one line.",
+      "resolution": "split into inspection_every_ro + inspection_exceptions"
+    },
+    {
+      "form": "Service_Advisor_Assessment_Form.docx / Parts_Assessment_Form.docx",
+      "issue": "Neither is marked APPROVED, unlike the Technician and Support Staff forms.",
+      "resolution": "seeded as published anyway — review before first live engagement"
+    }
+  ]
+}

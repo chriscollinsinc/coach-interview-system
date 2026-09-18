@@ -1,0 +1,55 @@
+{
+  "template_key": "support_staff",
+  "version": 1,
+  "title": "Support Staff Interview",
+  "status": "published",
+  "applies_to": {
+    "department": "support",
+    "positions": ["porter","lot porter","valet","warranty admin","warranty administrator",
+                  "admin","office","cashier","bdc","bdc rep","appointment coordinator",
+                  "greeter","dispatcher","shuttle driver"]
+  },
+  "sections": [
+    { "title": "Background",
+      "questions": [
+        { "key": "tenure_company", "required": true },
+        { "key": "primary_role_support", "required": true },
+        { "key": "has_job_description", "required": true },
+        { "key": "work_interruptions" },
+        { "key": "career_outlook_1yr" }
+      ] },
+    { "title": "Day to Day",
+      "questions": [
+        { "key": "checkin_authority", "required": true },
+        { "key": "primary_interaction", "required": true }
+      ] },
+    { "title": "Working Relationships",
+      "questions": [
+        { "key": "rel_with_advisors", "required": true,
+          "prompt_override": "How would you rate relationship with Service Advisors?" },
+        { "key": "comm_with_techs", "required": true,
+          "prompt_override": "How would you rate communication with technicians?" },
+        { "key": "rel_parts_service", "required": true },
+        { "key": "dept_cohesion" },
+        { "key": "biggest_comm_gap", "required": true }
+      ] },
+    { "title": "Service Advisors",
+      "questions": [
+        { "key": "nominate_strongest_advisor" },
+        { "key": "nominate_strongest_advisor_why" },
+        { "key": "nominate_support_advisor" },
+        { "key": "nominate_support_advisor_why" }
+      ] },
+    { "title": "Leadership",
+      "questions": [
+        { "key": "sm_accountability_style", "required": true,
+          "prompt_override": "How is your service manager when they need to hold you accountable?" },
+        { "key": "leadership_clarity", "required": true }
+      ] },
+    { "title": "Closing",
+      "questions": [ { "key": "biggest_improvement_opportunity", "required": true } ] },
+    { "title": "Interviewer Notes",
+      "internal_only": true,
+      "questions": [ { "key": "interviewer_notes" } ] }
+  ]
+}

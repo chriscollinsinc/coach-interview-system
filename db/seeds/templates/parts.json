@@ -1,0 +1,65 @@
+{
+  "template_key": "parts",
+  "version": 1,
+  "title": "Parts Interview",
+  "status": "published",
+  "applies_to": {
+    "department": "parts",
+    "positions": ["parts","parts counter","parts counterperson","counterperson",
+                  "parts advisor","parts driver","driver","warehouse","stock clerk",
+                  "wholesale parts","parts specialist"]
+  },
+  "sections": [
+    { "title": "Background",
+      "questions": [
+        { "key": "tenure_company", "required": true },
+        { "key": "primary_role_parts", "required": true },
+        { "key": "has_job_description", "required": true },
+        { "key": "pay_structure", "required": true }
+      ] },
+    { "title": "Parts Process",
+      "questions": [
+        { "key": "parts_requisition_used", "required": true },
+        { "key": "parts_prepulled", "required": true },
+        { "key": "parts_delivered_to_stall", "required": true,
+          "prompt_override": "Do you deliver parts to technicians?" },
+        { "key": "parts_delay_cause", "required": true,
+          "prompt_override": "What causes the most common delays in getting parts to technicians?" },
+        { "key": "techs_could_improve" },
+        { "key": "shop_supplies_billing" },
+        { "key": "parts_incentive_program" }
+      ] },
+    { "title": "Working Relationships",
+      "questions": [
+        { "key": "rel_parts_service", "required": true,
+          "prompt_override": "Rate the working relationship between Parts and Service." },
+        { "key": "comm_with_advisors", "required": true,
+          "prompt_override": "Rate communication with Service Advisors." },
+        { "key": "comm_with_techs", "required": true,
+          "prompt_override": "Rate communication with Technicians." },
+        { "key": "advisors_slow_me_down" },
+        { "key": "improve_parts_service" }
+      ] },
+    { "title": "Leadership",
+      "questions": [
+        { "key": "pm_leadership_style", "required": true },
+        { "key": "pm_strengths" },
+        { "key": "pm_opportunities" }
+      ] },
+    { "title": "Technicians",
+      "questions": [
+        { "key": "nominate_strongest_tech" },
+        { "key": "nominate_strongest_tech_why" },
+        { "key": "nominate_support_tech" },
+        { "key": "nominate_support_tech_why" }
+      ] },
+    { "title": "Closing",
+      "questions": [
+        { "key": "if_you_owned_it", "required": true },
+        { "key": "if_you_owned_it_why" }
+      ] },
+    { "title": "Interviewer Notes",
+      "internal_only": true,
+      "questions": [ { "key": "interviewer_notes" } ] }
+  ]
+}
