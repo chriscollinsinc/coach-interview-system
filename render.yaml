@@ -1,26 +1,35 @@
+# Render Blueprint. New -> Blueprint in the Render dashboard, point at this repo.
+#
+# Plans: 0.5c-512mb web ($7/mo) + 0.1c-256mb Postgres ($6/mo).
+# Deliberately NOT the free tier: free Postgres is deleted 30 days after
+# creation, which would take real engagement data with it, and a free web
+# service sleeps after 15 minutes of inactivity and takes ~1 minute to wake --
+# unacceptable when a consultant taps Start in a dealership.
 services:
   - type: web
-    name: cci-staff-interviews
+    name: coach-interview-system
     runtime: node
-    plan: starter
+    plan: 0.5c-512mb
     buildCommand: npm install
-    startCommand: npm run migrate && npm start
+    # setup = migrate + seed, both idempotent and safe on every boot. This is
+    # what removes the need for shell access to load the question catalog.
+    startCommand: npm run setup && npm start
     healthCheckPath: /healthz
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: cci-interviews-db
+          name: coach-interview-db
           property: connectionString
       - key: SESSION_SECRET
         generateValue: true
       - key: NODE_ENV
         value: production
       - key: ANTHROPIC_API_KEY
-        sync: false
+        sync: false          # set in the dashboard; never in git
       - key: ANTHROPIC_MODEL
         value: claude-sonnet-4-5
 
 databases:
-  - name: cci-interviews-db
-    plan: basic-256mb
+  - name: coach-interview-db
+    plan: 0.1c-256mb
     postgresMajorVersion: "16"
