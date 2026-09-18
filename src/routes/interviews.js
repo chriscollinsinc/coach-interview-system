@@ -34,6 +34,23 @@ router.post('/interviews', wrap(async (req, res) => {
   const openDraft = await db.one(
     `select * from interviews where employee_id = $1 and status = 'draft'
       order by started_at desc limit 1`, [employee_id]);
+  // Already interviewed? "Review" must open that interview, not silently start
+  // a second one. Only an explicit force_new re-interviews someone.
+  const finished = await db.one(
+    `select * from interviews where employee_id = $1 and status in ('complete','locked')
+      order by completed_at desc nulls last limit 1`, [employee_id]);
+  if (finished && req.body.force_new !== true) {
+    // Tidy up blank drafts created by the old Review behaviour. Only drafts
+    // with zero answers are removed, so nothing anyone typed is ever lost.
+    const { rowCount } = await db.query(
+      `delete from interviews i
+        where i.employee_id = $1 and i.status = 'draft'
+          and not exists (select 1 from answers a where a.interview_id = i.id)`,
+      [employee_id]);
+    if (rowCount) await audit(req, 'interview.cleanup_empty_drafts', 'employee', employee_id, { removed: rowCount });
+    return res.json(finished);
+  }
+
   if (openDraft && req.body.force_new !== true) {
     if (client_ref && !openDraft.client_ref) {
       await db.query('update interviews set client_ref = $1 where id = $2', [client_ref, openDraft.id]);

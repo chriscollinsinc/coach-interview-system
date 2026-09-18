@@ -492,7 +492,10 @@ async function screenStore(id) {
       el('div', { class: 'muted small' }, [p.position_title, p.template_key].filter(Boolean).join(' · '))),
     tagFor(p),
     p.template_key
-      ? el('button', { class: 'btn', onclick: () => startInterview(p) },
+      ? el('button', { class: 'btn',
+          // An existing interview is opened by id. Only a genuinely new one
+          // goes through startInterview, which creates the record.
+          onclick: () => (p.interview_id ? go('#/interview/' + p.interview_id) : startInterview(p)) },
           p.interview_status === 'complete' ? 'Review' : p.interview_status === 'in_progress' ? 'Resume' : 'Start')
       : el('button', { class: 'btn ghost', onclick: () => leadershipNote(p) }, 'Note'),
     el('button', { class: 'btn ghost', onclick: () => personMenu(p, id) }, '⋯'));
@@ -520,10 +523,11 @@ async function screenStore(id) {
     noForm.length ? el('div', { class: 'card', style: 'padding:0' }, noForm.map(personRow)) : null);
 }
 
-async function startInterview(p) {
+async function startInterview(p, forceNew = false) {
   const client_ref = uid();
   try {
-    const iv = await api('/interviews', { method: 'POST', body: { employee_id: p.id, client_ref } });
+    const iv = await api('/interviews', { method: 'POST',
+      body: { employee_id: p.id, client_ref, force_new: forceNew || undefined } });
     go('#/interview/' + iv.id);
   } catch (e) {
     if (!navigator.onLine) {
@@ -884,7 +888,84 @@ async function screenInterview(interviewId) {
     }
   }
 
-  renderSection();
+  // ---- read-only review of a finished interview ----
+  function formatAnswer(def, a) {
+    if (!a || a.value === null || a.value === undefined || a.value === '' ||
+        (Array.isArray(a.value) && !a.value.length)) return null;
+    const v = a.value;
+    const label = (val) => {
+      if (val === '__other__') return a.other_text ? `Other — ${a.other_text}` : 'Other';
+      const hit = (def.options || []).find((o) => o.value === val);
+      return hit ? hit.label : String(val);
+    };
+    switch (def.type) {
+      case 'rating': {
+        const name = def.scale?.labels?.[String(v)];
+        return name ? `${v} — ${name}` : String(v);
+      }
+      case 'yes_no': return v === 'yes' ? 'Yes' : v === 'no' ? 'No' : String(v);
+      case 'single_select': return label(v);
+      case 'multi_select': return v.map(label).join(', ');
+      case 'employee_ref': {
+        const id = typeof v === 'string' ? v : v.employee_id;
+        const free = v && typeof v === 'object' ? v.freetext : null;
+        if (free) return `${free} (not on roster)`;
+        const p = pickable.find((x) => x.id === id);
+        return p ? `${p.first_name} ${p.last_name}` : '(unknown)';
+      }
+      default: return String(v);
+    }
+  }
+
+  function renderReview() {
+    const locked = iv.status === 'locked';
+    const canReopen = ['admin', 'lead'].includes(state.user?.role) && !locked;
+
+    const blocks = tpl.sections.map((sec) => {
+      const rows = (sec.questions || []).map((q) => {
+        const def = catalog.get(q.key);
+        if (!def) return null;
+        if (q.show_if && !evalShowIf(q.show_if)) return null;
+        const text = formatAnswer(def, answers.get(q.key));
+        return el('div', { style: 'padding:10px 0;border-bottom:1px solid var(--border)' },
+          el('div', { class: 'small muted' }, q.prompt_override || def.prompt),
+          el('div', { style: 'margin-top:2px;white-space:pre-wrap' },
+            text ?? el('span', { class: 'muted' }, '— not answered —')));
+      }).filter(Boolean);
+      if (!rows.length) return null;
+      return el('div', { class: 'card' },
+        el('h3', {}, sec.title),
+        sec.internal_only ? banner('info', 'Internal only — excluded from any client-facing export.') : null,
+        rows);
+    }).filter(Boolean);
+
+    view(
+      el('div', { class: 'card' },
+        el('div', { class: 'row between' },
+          el('div', { class: 'grow' },
+            el('h3', {}, `${iv.first_name} ${iv.last_name}`),
+            el('div', { class: 'muted small' },
+              [iv.position_title, iv.store_name,
+               iv.completed_at ? 'completed ' + new Date(iv.completed_at).toLocaleString() : null,
+               iv.interviewer_name ? 'by ' + iv.interviewer_name : null].filter(Boolean).join(' · '))),
+          el('span', { class: 'tag ' + (locked ? 'na' : 'complete') }, locked ? 'locked' : 'complete')),
+        el('div', { class: 'btnrow', style: 'margin-top:12px' },
+          canReopen ? el('button', { class: 'btn', onclick: async () => {
+            if (!confirm('Reopen this interview for editing? It will be excluded from analysis until completed again.')) return;
+            await api(`/interviews/${interviewId}/reopen`, { method: 'POST', body: {} });
+            route();
+          } }, 'Reopen for editing') : null,
+          state.user?.role === 'admin' ? el('button', { class: 'btn ghost', onclick: async () => {
+            if (!confirm(`Start a SECOND interview for ${iv.first_name} ${iv.last_name}? Use this only for a genuine re-interview — the existing one is kept.`)) return;
+            await startInterview({ id: iv.employee_id }, true);
+          } }, 'New interview for this person') : null),
+        locked ? el('div', { class: 'small muted', style: 'margin-top:8px' },
+          'This interview is locked and cannot be edited.') : null),
+      blocks);
+  }
+
+  if (iv.status === 'complete' || iv.status === 'locked') renderReview();
+  else renderSection();
 }
 
 // ------------------------------------------------------------ dashboard

@@ -203,6 +203,45 @@ Kim\tAdeyemi\tPorter`;
   catch (e) { rejected = e.status === 422 && Array.isArray(e.data.missing) && e.data.missing.length > 0; }
   ok(rejected, 'empty interview blocked by required-field validation');
 
+  // ---- Review must not create a second interview (regression) ----
+  console.log('\nreview a completed interview');
+  const beforeRows = await call(`/stores/${store.id}/interviews`);
+  const reviewed = await call('/interviews', { method: 'POST', body: {
+    employee_id: find('Marcus').id, client_ref: 'smoke-review-' + find('Marcus').id } });
+  ok(reviewed.id === ivMarcus.id,
+     'opening a completed interview returns the SAME interview, not a new blank one',
+     { got: reviewed.id, expected: ivMarcus.id });
+  ok(reviewed.status === 'complete', 'it comes back still marked complete');
+  const afterRows = await call(`/stores/${store.id}/interviews`);
+  ok(afterRows.length === beforeRows.length,
+     'no extra interview row was created', { before: beforeRows.length, after: afterRows.length });
+
+  // strays from the old behaviour are swept up, but only if truly empty
+  const strayCheck = await call(`/stores/${store.id}/interviews`);
+  ok(!strayCheck.some((r) => r.status === 'draft' && r.first_name === 'Marcus'),
+     'blank drafts left by the old Review behaviour are cleaned up');
+
+  const marcusRoster = (await call(`/stores/${store.id}/employees`))
+    .find((p) => p.first_name === 'Marcus');
+  ok(marcusRoster.interview_id === ivMarcus.id,
+     'roster hands the UI the completed interview id so Review opens it directly');
+  ok(marcusRoster.interview_status === 'complete', 'employee stays complete after a review');
+
+  const detail = await call('/interviews/' + ivMarcus.id);
+  ok(detail.answers.length > 10, 'review payload actually contains the answers',
+     { answers: detail.answers.length });
+
+  // an explicit re-interview is still possible, but only on purpose
+  const reInterview = await call('/interviews', { method: 'POST', body: {
+    employee_id: find('Marcus').id, force_new: true } });
+  ok(reInterview.id !== ivMarcus.id && reInterview.status === 'draft',
+     'force_new still allows a deliberate re-interview');
+  await call(`/interviews/${reInterview.id}/complete`, { method: 'POST', body: { force: true } })
+    .catch(() => {});
+  // put things back so the analytics assertions below are unaffected
+  await call(`/interviews/${reInterview.id}/reopen`, { method: 'POST', body: { reason: 'smoke cleanup' } })
+    .catch(() => {});
+
   // ---- the analytics that justify the whole build ----
   console.log('\nanalytics');
   const facts = await call(`/stores/${store.id}/facts`);
@@ -278,7 +317,14 @@ Kim\tAdeyemi\tPorter`;
     sections: [{ title: 'Relationships', questions: [
       { key: 'rel_parts_service', required: true },
       { key: 'sm_accountability_style' }] }] } });
-  ok(smTpl.version === 1 && smTpl.status === 'published', 'new survey published without a code change');
+  // Version is whatever comes next for this key -- republishing is supposed to
+  // create a new version rather than mutate the old one, so don't pin it to 1.
+  ok(smTpl.version >= 1 && smTpl.status === 'published',
+     'new survey published without a code change', { version: smTpl.version });
+  const smVersions = (await call('/templates')).filter((t) => t.template_key === 'service_manager');
+  ok(smVersions.length === smTpl.version,
+     'each publish adds a version rather than overwriting the previous one',
+     { versions: smVersions.length, latest: smTpl.version });
 
   // The payoff: the new survey's answers pool into the EXISTING dimension.
   await call('/employees/' + find('Ray').id, { method: 'PATCH', body: {
