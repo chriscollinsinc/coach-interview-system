@@ -220,8 +220,7 @@ async function route() {
 
 function brandHero(sub) {
   return el('div', { class: 'brandhero' },
-    el('img', { class: 'logo-dark', src: '/icons/cci-logo-dark.png', alt: 'Chris Collins Inc.' }),
-    el('img', { class: 'logo-light', src: '/icons/cci-logo.png', alt: '', 'aria-hidden': 'true' }),
+    el('img', { src: '/icons/cci-logo.png', alt: 'Chris Collins Inc.' }),
     el('div', { class: 'sub' }, sub));
 }
 

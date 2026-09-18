@@ -91,9 +91,14 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
   setHeaders: (res, p) => { if (p.endsWith('sw.js')) res.setHeader('Cache-Control', 'no-cache'); }
 }));
 
-// SPA fallback, but never swallow an unmatched API route.
+// SPA fallback. Two things it must NOT swallow: an unmatched API route, and a
+// missing static file. Returning index.html for a mistyped /icons/x.png would
+// be a 200 full of HTML, which renders as a broken image and hides the typo.
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'not_found' });
+  if (/\.[a-z0-9]{2,5}$/i.test(req.path)) {
+    return res.status(404).type('text/plain').send('Not found');
+  }
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
