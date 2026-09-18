@@ -66,38 +66,32 @@ npm run smoke:users  # 27 tests: bootstrap, roles, last-admin guard, passwords
 ## Deploy to Render
 
 1. Push this repo to GitHub.
-2. Render dashboard → **New → Blueprint**, select the repo, apply.
-   `render.yaml` provisions the web service and a Postgres instance and wires
-   `DATABASE_URL` automatically.
-3. Set `ANTHROPIC_API_KEY` on the web service (it is `sync: false`, so it is
-   never in git). The app deploys and runs fine without it — the dashboard and
-   CSV export work, and analysis runs save computed facts with
-   `status: facts_only`.
-4. Open the URL. The app detects an empty user table and walks you through
-   creating the first admin. No shell access needed.
+2. In Render: **New → Blueprint**, point at the repo. `render.yaml` provisions the
+   web service and a Postgres instance and wires `DATABASE_URL` automatically.
+3. Set `ANTHROPIC_API_KEY` in the service's environment (marked `sync: false`).
+4. First deploy runs migrations via the start command. Open the URL and the app
+   walks you through creating the first admin — no shell access needed. Seed the
+   question catalog and templates by running `npm run seed` once from the Render
+   shell (or add it to the start command for the first deploy).
 
-The start command is `npm run setup && npm start`, so migrations and the
-question-catalog seed run on every deploy. Both are idempotent — verified over
-repeated runs, with existing engagement data left untouched — so a redeploy
-never duplicates catalog entries or clobbers interviews.
+### The API key
 
-### Why not the free tier
+`ANTHROPIC_API_KEY` is only needed for the written narrative. Everything else —
+roster, capture, the whole dashboard, CSV export — works without it, and an
+analysis run without it saves the computed facts with `status: facts_only`.
 
-Free Render Postgres is **deleted 30 days after creation** (plus a 14-day grace
-period). That would take real engagement data with it. A free web service also
-sleeps after 15 minutes of inactivity and takes about a minute to wake, which is
-not acceptable when a consultant taps Start in a dealership bay.
+It is a **separate product from a Claude.ai subscription**. A Pro or Max plan
+does not include API credits; the key comes from the Anthropic Console
+(console.anthropic.com → API keys) and is billed per token against credit you
+buy there.
 
-The blueprint therefore specifies paid plans: `0.5c-512mb` web and `0.1c-256mb`
-Postgres. Check current pricing on Render — at time of writing that is roughly
-$7 and $6 per month. Use `free` for both only while evaluating, and never with
-real interview data in it.
+Set it on the Render service under Environment, not in the repo — `render.yaml`
+marks it `sync: false` for exactly that reason.
 
-### Backups
-
-The `0.1c-256mb` Postgres plan is the smallest paid tier; confirm what backup
-retention it includes before the first live engagement. `GET
-/api/stores/:id/export.csv` is a manual escape hatch, not a backup strategy.
+Cost is small: one store analysis sends the computed facts plus up to 60 KB of
+verbatims and asks for at most 8k tokens back, which at Claude Sonnet 5 rates
+works out around **$0.07 per run**. Re-running an engagement's analysis a few
+times is still cents.
 
 ---
 
