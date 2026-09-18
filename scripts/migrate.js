@@ -3,8 +3,10 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const db = require('../src/db');
+const { waitForDb } = require('./wait-for-db');
 
 (async () => {
+  await waitForDb();
   await db.query(`create table if not exists schema_migrations (
     filename text primary key, applied_at timestamptz not null default now())`);
   const dir = path.join(__dirname, '..', 'db', 'migrations');
