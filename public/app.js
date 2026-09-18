@@ -1013,66 +1013,24 @@ async function screenDashboard(storeId) {
       el('div', { class: 'k' }, 'split opinions')));
 
   // Cross-role gaps — the reason this app exists.
-  const gapCards = facts.dimensions
-    .filter((d) => d.type === 'rating' && d.role_count > 1)
-    .map((d) => el('div', { class: 'card' },
-      el('div', { class: 'row between' },
-        el('h3', {}, prettyDim(d.dimension)),
-        d.gap ? el('span', { class: 'sev ' + (d.gap.spread >= 1 ? 'high' : d.gap.spread >= 0.5 ? 'medium' : 'low') },
-          `${d.gap.spread.toFixed(2)} spread`) : null),
-      d.roles.filter((r) => r.avg !== null).map((r) => el('div', { class: 'gapbar' },
-        el('span', { class: 'name' }, r.role_label),
-        el('span', { class: 'track' }, el('i', { style: `width:${((r.avg - 1) / 2 * 100).toFixed(1)}%` })),
-        el('span', { class: 'val' }, r.avg === null ? '—' : r.avg.toFixed(2)),
-        el('span', { class: 'small muted' }, `n=${r.n}`))),
-      d.gap && d.gap.spread >= 0.5
-        ? el('div', { class: 'small muted', style: 'margin-top:8px' },
-            `${d.gap.highest.role_label} rate this ${d.gap.spread.toFixed(2)} higher than ${d.gap.lowest.role_label}.`)
-        : null));
-
-  // Choice dimensions where departments name different causes.
-  const divergent = facts.dimensions
-    .filter((d) => d.choice_divergence && !d.choice_divergence.agree)
-    .map((d) => el('div', { class: 'card' },
-      el('h3', {}, prettyDim(d.dimension)),
-      el('div', { class: 'small muted', style: 'margin-bottom:8px' }, 'Departments name different answers.'),
-      el('table', { class: 'grid' },
-        d.roles.filter((r) => r.choices).map((r) => el('tr', {},
-          el('td', {}, r.role_label),
-          el('td', {}, r.choices.map((ch) => `${ch.label} (${ch.count})`).join(', ')))))));
-
-  // Nominations
-  const nomBlocks = [];
-  for (const [target, dirs] of Object.entries(facts.nominations || {})) {
-    for (const [dir, list] of Object.entries(dirs)) {
-      if (!list.length) continue;
-      nomBlocks.push(el('div', { class: 'card' },
-        el('h3', {}, `${target === 'advisor' ? 'Service Advisors' : 'Technicians'} — ${dir === 'strongest' ? 'named strongest' : 'named as needing support'}`),
-        el('table', { class: 'grid' },
-          el('tr', {}, el('th', {}, 'Name'), el('th', { class: 'num' }, 'Votes'), el('th', {}, 'Named by')),
-          list.map((n) => el('tr', {},
-            el('td', {}, n.name),
-            el('td', { class: 'num' }, String(n.count)),
-            el('td', { class: 'small muted' },
-              Object.entries(n.by_role).map(([r, c]) => `${r} ${c}`).join(', ')))))));
-    }
-  }
-  if (facts.never_nominated?.length) {
-    nomBlocks.push(el('div', { class: 'card' },
-      el('h3', {}, 'Interviewed but never named by anyone'),
-      el('div', { class: 'small muted' }, facts.never_nominated.map((n) => n.name).join(', '))));
-  }
-
   const runBtn = el('button', { class: 'btn primary', onclick: async () => {
     runBtn.disabled = true; runBtn.textContent = 'Analyzing…';
     try { const a = await api(`/stores/${storeId}/analyze`, { method: 'POST' }); go('#/analysis/' + a.id); }
-    catch (e) { alert(e.data?.error || e.message); runBtn.disabled = false; runBtn.textContent = 'Run LLM analysis'; }
-  } }, 'Run LLM analysis');
+    catch (e) {
+      alert(e.data?.error === 'no_completed_interviews'
+        ? 'No completed interviews at this store yet.'
+        : (e.data?.error || e.message));
+      runBtn.disabled = false; runBtn.textContent = 'Write the analysis';
+    }
+  } }, 'Write the analysis');
 
   view(
     tiles,
     el('div', { class: 'btnrow', style: 'margin:14px 0' }, runBtn,
       el('a', { class: 'btn', href: `/api/stores/${storeId}/export.csv` }, 'Export CSV')),
+    facts.narrative_available === false
+      ? banner('info', 'The numbers below are calculated from the interviews and are always available. The written analysis needs ANTHROPIC_API_KEY set on the server.')
+      : null,
 
     analyses.length ? el('h2', {}, 'Saved analyses') : null,
     analyses.length ? el('div', { class: 'card', style: 'padding:0' }, analyses.map((a) =>
@@ -1084,9 +1042,7 @@ async function screenDashboard(storeId) {
         el('span', { class: 'tag ' + (a.status === 'complete' ? 'complete' : 'skip') }, a.status)))) : null,
 
     facts.interview_count === 0 ? banner('warn', 'No completed interviews yet.') : null,
-    gapCards.length ? el('h2', {}, 'Cross-role rating gaps') : null, gapCards,
-    divergent.length ? el('h2', {}, 'Where departments disagree on causes') : null, divergent,
-    nomBlocks.length ? el('h2', {}, 'Nominations') : null, nomBlocks);
+    factBlocks(facts));
 }
 
 // Dimension keys are internal; a naive title-case turns sm_accountability into
@@ -1122,6 +1078,96 @@ const DIM_LABEL = {
   mentorship:                 'Mentorship',
   tenure:                     'Time with Company'
 };
+
+// Renders computed facts. Shared by the dashboard and by the analysis view when
+// no narrative was generated -- that case used to dump raw JSON on screen.
+function factBlocks(facts) {
+  const out = [];
+
+  const thin = (d) => d.roles.every((r) => (r.respondents || 0) < 2);
+  const thinNote = (d) => thin(d)
+    ? el('div', { class: 'small muted', style: 'margin-top:8px' },
+        'One response per department — a difference this size is two people disagreeing, not a pattern.')
+    : null;
+
+  const gapCards = facts.dimensions
+    .filter((d) => d.type === 'rating' && d.role_count > 1)
+    .map((d) => el('div', { class: 'card' },
+      el('div', { class: 'row between' },
+        el('h3', {}, prettyDim(d.dimension)),
+        d.gap ? el('span', { class: 'sev ' + (thin(d) ? 'low' : d.gap.spread >= 1 ? 'high' : d.gap.spread >= 0.5 ? 'medium' : 'low') },
+          `${d.gap.spread.toFixed(2)} spread`) : null),
+      d.roles.filter((r) => r.avg !== null).map((r) => el('div', { class: 'gapbar' },
+        el('span', { class: 'name' }, r.role_label),
+        el('span', { class: 'track' }, el('i', { style: `width:${((r.avg - 1) / 2 * 100).toFixed(1)}%` })),
+        el('span', { class: 'val' }, r.avg.toFixed(2)),
+        el('span', { class: 'small muted' }, `n=${r.n}`))),
+      d.gap && d.gap.spread >= 0.5 && !thin(d)
+        ? el('div', { class: 'small muted', style: 'margin-top:8px' },
+            `${d.gap.highest.role_label} rate this ${d.gap.spread.toFixed(2)} higher than ${d.gap.lowest.role_label}.`)
+        : null,
+      thinNote(d)));
+
+  // A single department answering on its own is not a comparison, but it is
+  // still worth seeing, so show it separately rather than hiding it.
+  const singles = facts.dimensions
+    .filter((d) => d.role_count === 1 && (d.headline || d.type === 'rating'))
+    .map((d) => {
+      const r = d.roles[0];
+      const value = r.avg !== null ? r.avg.toFixed(2)
+                  : (r.choices || []).map((c) => `${c.label} (${c.count})`).join(', ');
+      return el('tr', {}, el('td', {}, prettyDim(d.dimension)),
+        el('td', {}, r.role_label), el('td', {}, value || '—'));
+    });
+
+  const divergent = facts.dimensions
+    .filter((d) => d.choice_divergence && !d.choice_divergence.agree)
+    .map((d) => el('div', { class: 'card' },
+      el('h3', {}, prettyDim(d.dimension)),
+      el('div', { class: 'small muted', style: 'margin-bottom:8px' }, 'Departments name different answers.'),
+      el('table', { class: 'grid' },
+        d.roles.filter((r) => r.choices).map((r) => el('tr', {},
+          el('td', {}, r.role_label),
+          el('td', {}, r.choices.map((ch) => `${ch.label} (${ch.count})`).join(', '))))),
+      thinNote(d)));
+
+  const nomBlocks = [];
+  for (const [target, dirs] of Object.entries(facts.nominations || {})) {
+    for (const [dir, list] of Object.entries(dirs)) {
+      if (!list.length) continue;
+      nomBlocks.push(el('div', { class: 'card' },
+        el('h3', {}, `${target === 'advisor' ? 'Service Advisors' : 'Technicians'} — ${dir === 'strongest' ? 'named strongest' : 'named as needing support'}`),
+        el('table', { class: 'grid' },
+          el('tr', {}, el('th', {}, 'Name'), el('th', { class: 'num' }, 'Votes'), el('th', {}, 'Named by')),
+          list.map((n) => el('tr', {},
+            el('td', {}, n.name),
+            el('td', { class: 'num' }, String(n.count)),
+            el('td', { class: 'small muted' },
+              Object.entries(n.by_role).map(([r, c]) => `${r} ${c}`).join(', ')))))));
+    }
+  }
+  if (facts.never_nominated?.length) {
+    nomBlocks.push(el('div', { class: 'card' },
+      el('h3', {}, 'Interviewed but never named by anyone'),
+      el('div', { class: 'small muted' }, facts.never_nominated.map((n) => n.name).join(', '))));
+  }
+
+  if (gapCards.length) { out.push(el('h2', {}, 'Cross-role rating gaps')); out.push(...gapCards); }
+  if (divergent.length) { out.push(el('h2', {}, 'Where departments disagree on causes')); out.push(...divergent); }
+  if (singles.length) {
+    out.push(el('h2', {}, 'Answered by one department only'));
+    out.push(el('div', { class: 'card' },
+      el('div', { class: 'small muted', style: 'margin-bottom:8px' },
+        'No comparison possible until another department answers the same question.'),
+      el('table', { class: 'grid' },
+        el('tr', {}, el('th', {}, 'Question'), el('th', {}, 'Department'), el('th', {}, 'Answer')),
+        singles)));
+  }
+  if (nomBlocks.length) { out.push(el('h2', {}, 'Nominations')); out.push(...nomBlocks); }
+  if (!out.length) out.push(banner('info', 'Not enough completed interviews yet to compare anything.'));
+  return out;
+}
+
 function prettyDim(d) {
   return DIM_LABEL[d] || String(d).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -1132,11 +1178,20 @@ async function screenAnalysis(id) {
   document.querySelector('main').className = 'wide';
   const n = a.narrative;
 
+  // No narrative: still show the computed facts properly. Dumping raw JSON on
+  // screen was never acceptable, and the facts are the useful half anyway.
   if (!n) {
-    return view(banner(a.status === 'error' ? 'err' : 'warn',
-      a.error || 'No narrative was generated. The computed facts are still saved.'),
-      el('pre', { class: 'card small', style: 'overflow:auto' },
-        JSON.stringify(a.computed_facts?.dimensions?.slice(0, 5) || {}, null, 2)));
+    const noKey = a.status === 'facts_only';
+    const facts = a.computed_facts || { dimensions: [], nominations: {} };
+    return view(
+      el('div', { class: 'card' },
+        el('h3', {}, noKey ? 'Written analysis is not switched on' : 'The written analysis failed'),
+        el('p', { class: 'small' }, noKey
+          ? 'The numbers below were calculated from the interviews and are saved. The written summary is a separate step that needs an Anthropic API key set on the server as ANTHROPIC_API_KEY. Everything else works without it.'
+          : (a.error || 'The model did not return a usable answer. The numbers below are still saved.')),
+        el('div', { class: 'small muted' },
+          `${(a.input_interview_ids || []).length} interviews · ${new Date(a.generated_at).toLocaleString()}`)),
+      factBlocks(facts));
   }
   if (n.parse_error) return view(banner('err', 'The model returned unparseable output.'),
     el('pre', { class: 'card small', style: 'overflow:auto' }, n.raw));

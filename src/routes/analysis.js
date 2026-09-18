@@ -12,7 +12,11 @@ router.use(requireAuth);
 // Live dashboard numbers. Always recomputed, never cached — cheap, and it
 // means the coverage counter on the iPad is honest mid-fieldwork.
 router.get('/stores/:id/facts', wrap(async (req, res) => {
-  res.json(await computeFacts({ storeId: req.params.id }));
+  const facts = await computeFacts({ storeId: req.params.id });
+  // Let the dashboard say up front whether the written analysis is available,
+  // rather than finding out only after someone presses the button.
+  facts.narrative_available = Boolean(process.env.ANTHROPIC_API_KEY);
+  res.json(facts);
 }));
 
 router.get('/engagements/:id/facts', wrap(async (req, res) => {
