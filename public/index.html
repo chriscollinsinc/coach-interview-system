@@ -6,8 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Interviews">
-  <meta name="theme-color" content="#0f1115">
+  <meta name="apple-mobile-web-app-title" content="CCI Interviews">
+  <meta name="theme-color" content="#F2F2F2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="stylesheet" href="/styles.css">
@@ -15,7 +16,11 @@
 <body>
   <header class="topbar">
     <button class="back" id="backBtn" hidden>&lsaquo; Back</button>
-    <h1 id="title">CCI Staff Interviews</h1>
+    <span class="brandmark" id="brandmark">
+      <img id="brandLogo" src="/icons/cci-logo.png" alt="Chris Collins Inc." hidden>
+      <span class="wordmark">Chris<em>Collins</em></span>
+    </span>
+    <h1 id="title">Staff Interviews</h1>
     <span class="netpill online" id="net">online</span>
     <button class="btn ghost small" id="logoutBtn" hidden>Sign out</button>
   </header>

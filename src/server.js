@@ -24,6 +24,9 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:'],
+      // Self-hosted only. A webfont fetched from a CDN would fail on
+      // dealership wifi, which is exactly when the app has to work.
+      fontSrc: ["'self'"],
       connectSrc: ["'self'"],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"]

@@ -141,11 +141,18 @@ const uid = () => (crypto.randomUUID ? crypto.randomUUID()
   : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }));
 const initials = (f, l) => ((f || '')[0] || '').toUpperCase() + ((l || '')[0] || '').toUpperCase();
+// Survey keys are snake_case in the database; never show them to a consultant.
+const SURVEY_LABEL = { technician: 'Technician', service_advisor: 'Service Advisor',
+  parts: 'Parts', support_staff: 'Support Staff' };
+const surveyLabel = (k) => SURVEY_LABEL[k] ||
+  String(k || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 const esc = (s) => String(s ?? '');
 const go = (hash) => { location.hash = hash; };
 
 function setTitle(t, back) {
   $('#title').textContent = t;
+  const bm = $('#brandmark');
+  if (bm) bm.hidden = !state.user;   // signed-out screens use the hero instead
   const b = $('#backBtn');
   b.hidden = !back;
   b.onclick = () => (typeof back === 'string' ? go(back) : history.back());
@@ -202,6 +209,12 @@ async function route() {
 
 // ============================================================ screens
 
+function brandHero(sub) {
+  return el('div', { class: 'brandhero' },
+    el('div', { class: 'wordmark' }, 'Chris', el('em', {}, 'Collins'), ' Inc.'),
+    el('div', { class: 'sub' }, sub));
+}
+
 async function screenLogin() {
   setTitle('Sign in', false);
   // A brand-new deployment has no users yet; let the first admin be created
@@ -224,7 +237,7 @@ async function screenLogin() {
     el('label', { class: 'field' }, el('span', { class: 'label' }, 'Password'), pw),
     err,
     el('button', { class: 'btn primary', type: 'submit' }, 'Sign in'));
-  view(form);
+  view(brandHero('Staff Interview System'), form);
 }
 
 // ------------------------------------------------------------ first-run setup
@@ -245,7 +258,8 @@ async function screenSetup() {
   const pw2 = el('input', { type: 'password', autocomplete: 'new-password' });
   const err = el('div');
 
-  view(el('form', { class: 'card', onsubmit: async (e) => {
+  view(brandHero('Staff Interview System'),
+    el('form', { class: 'card', onsubmit: async (e) => {
       e.preventDefault(); err.innerHTML = '';
       if (pw.value !== pw2.value) { err.appendChild(banner('err', 'Passwords do not match.')); return; }
       try {
@@ -426,7 +440,7 @@ async function screenEngagements() {
         el('div', { class: 'muted small' },
           [e.dealer_group, `${e.store_count} store${e.store_count === 1 ? '' : 's'}`,
            `${e.complete_count}/${e.roster_count} interviewed`].filter(Boolean).join(' · '))),
-      el('span', { class: 'tag ' + (e.status === 'complete' ? 'complete' : e.status === 'fieldwork' ? 'progress' : '') }, e.status))));
+      el('span', { class: 'tag ' + (e.status === 'complete' ? 'complete' : e.status === 'fieldwork' ? 'working' : '') }, e.status))));
 
   view(
     el('div', { class: 'row between' }, el('h2', {}, 'Engagements'),
@@ -478,7 +492,7 @@ async function screenStore(id) {
   const tagFor = (p) => {
     const s = p.interview_status;
     if (s === 'complete') return el('span', { class: 'tag complete' }, 'done');
-    if (s === 'in_progress') return el('span', { class: 'tag progress' }, 'in progress');
+    if (s === 'in_progress') return el('span', { class: 'tag working' }, 'in progress');
     if (['no_show', 'declined', 'no_longer_employed'].includes(s))
       return el('span', { class: 'tag skip' }, s.replace(/_/g, ' '));
     if (s === 'not_applicable') return el('span', { class: 'tag na' }, 'no survey');
@@ -489,7 +503,8 @@ async function screenStore(id) {
     el('div', { class: 'avatar' }, initials(p.first_name, p.last_name)),
     el('div', { class: 'grow' },
       el('div', {}, `${p.first_name} ${p.last_name}`),
-      el('div', { class: 'muted small' }, [p.position_title, p.template_key].filter(Boolean).join(' · '))),
+      el('div', { class: 'muted small' },
+        [p.position_title, surveyLabel(p.template_key)].filter(Boolean).join(' · '))),
     tagFor(p),
     p.template_key
       ? el('button', { class: 'btn',
@@ -1066,8 +1081,41 @@ async function screenDashboard(storeId) {
     nomBlocks.length ? el('h2', {}, 'Nominations') : null, nomBlocks);
 }
 
+// Dimension keys are internal; a naive title-case turns sm_accountability into
+// "Sm Accountability". These are the names a consultant should actually read.
+const DIM_LABEL = {
+  parts_service_relationship: 'Parts \u2194 Service Relationship',
+  advisor_tech_relationship:  'Advisors \u2194 Technicians',
+  advisor_communication:      'Communication with Service Advisors',
+  advisor_relationship:       'Relationship with Service Advisors',
+  tech_communication:         'Communication with Technicians',
+  service_sales_relationship: 'Service \u2194 Sales Relationship',
+  sm_accountability:          'Service Manager \u2014 Accountability',
+  sm_leadership:              'Service Manager \u2014 Leadership',
+  pm_leadership:              'Parts Manager \u2014 Leadership',
+  leadership_clarity:         'Clarity of Expectations',
+  parts_delivery:             'Parts Delivered to the Stall',
+  parts_delay_cause:          'Cause of Parts Delays',
+  parts_process_discipline:   'Parts Process Discipline',
+  productivity_blocker:       'What Slows People Down',
+  change_priority:            'If You Owned the Dealership',
+  communication_gap:          'Biggest Communication Gap',
+  department_cohesion:        'How the Department Works Together',
+  inspection_discipline:      'Inspection Discipline',
+  dispatch_quality:           'Dispatch Process',
+  job_description_exists:     'Has a Written Job Description',
+  self_productivity:          'Self-Rated Productivity',
+  advisor_standing:           'Service Advisor Standing',
+  tech_standing:              'Technician Standing',
+  service_menu:               'Service Menu',
+  pay_structure:              'Pay Structure',
+  flagged_hours:              'Flagged Hours',
+  retention_signal:           'Retention Signal',
+  mentorship:                 'Mentorship',
+  tenure:                     'Time with Company'
+};
 function prettyDim(d) {
-  return String(d).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return DIM_LABEL[d] || String(d).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 async function screenAnalysis(id) {
@@ -1125,6 +1173,21 @@ $('#logoutBtn').addEventListener('click', async () => {
   await api('/auth/logout', { method: 'POST' }).catch(() => {});
   state.user = null; go('#/login');
 });
+
+// The logo file is optional: if public/icons/cci-logo.png is present it
+// replaces the text wordmark, otherwise the wordmark stands on its own.
+(function initBrand() {
+  const img = document.getElementById('brandLogo');
+  if (!img) return;
+  img.addEventListener('load', () => {
+    if (img.naturalWidth > 0) {
+      img.hidden = false;
+      const wm = img.parentNode.querySelector('.wordmark');
+      if (wm) wm.hidden = true;
+    }
+  });
+  img.addEventListener('error', () => { img.remove(); });
+})();
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch((e) => console.warn('sw:', e.message));

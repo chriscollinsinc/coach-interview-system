@@ -26,8 +26,12 @@ function session() {
   };
 }
 
+const RUN = Date.now().toString(36);
+const addr = (who) => `${who}+${RUN}@chriscollinsinc.com`;
+const DANA = addr('dana'), SAM = addr('sam'), ADMIN2 = addr('admin2');
+
 (async () => {
-  console.log(`user management smoke -> ${BASE}\n`);
+  console.log(`user management smoke -> ${BASE}  (run ${RUN})\n`);
   const admin = session();
 
   // ---- bootstrap ----
@@ -45,7 +49,7 @@ function session() {
 
   let blocked = false;
   try { await admin('/setup/bootstrap', { method: 'POST', body: {
-    name: 'Attacker', email: 'evil@example.com', password: 'anchor-ridge-999' } }); }
+    name: 'Attacker', email: addr('evil'), password: 'anchor-ridge-999' } }); }
   catch (e) { blocked = e.status === 409; }
   ok(blocked, 'bootstrap refuses to run once any user exists');
 
@@ -55,7 +59,7 @@ function session() {
                            ['mypassword123', 'predictable']]) {
     let rejected = false;
     try { await admin('/users', { method: 'POST', body: {
-      name: 'X', email: `x${Math.random()}@t.com`, password: pw } }); }
+      name: 'X', email: addr('x'+Math.random().toString(36).slice(2)), password: pw } }); }
     catch (e) { rejected = e.status === 400 && e.data.error === 'weak_password'; }
     ok(rejected, `rejects a ${why} password`);
   }
@@ -63,26 +67,26 @@ function session() {
   // ---- create logins ----
   console.log('\ncreating logins');
   const consultant = await admin('/users', { method: 'POST', body: {
-    name: 'Dana Reyes', email: 'dana@chriscollinsinc.com', password: 'cedar-harbor-208', role: 'consultant' } });
+    name: 'Dana Reyes', email: DANA, password: 'cedar-harbor-208', role: 'consultant' } });
   ok(consultant.role === 'consultant', 'consultant login created');
 
   const lead = await admin('/users', { method: 'POST', body: {
-    name: 'Sam Doyle', email: 'sam@chriscollinsinc.com', password: 'lantern-pivot-733', role: 'lead' } });
+    name: 'Sam Doyle', email: SAM, password: 'lantern-pivot-733', role: 'lead' } });
   ok(lead.role === 'lead', 'lead login created');
 
   const admin2 = await admin('/users', { method: 'POST', body: {
-    name: 'Second Admin', email: 'admin2@chriscollinsinc.com', password: 'summit-tundra-591', role: 'admin' } });
+    name: 'Second Admin', email: ADMIN2, password: 'summit-tundra-591', role: 'admin' } });
   ok(admin2.role === 'admin', 'second admin created');
 
   let dup = false;
   try { await admin('/users', { method: 'POST', body: {
-    name: 'Dupe', email: 'DANA@chriscollinsinc.com', password: 'granite-marlin-330' } }); }
+    name: 'Dupe', email: DANA.toUpperCase(), password: 'granite-marlin-330' } }); }
   catch (e) { dup = e.status === 409 && e.data.error === 'email_taken'; }
   ok(dup, 'duplicate email rejected case-insensitively');
 
   let badRole = false;
   try { await admin('/users', { method: 'POST', body: {
-    name: 'Nope', email: 'nope@t.com', password: 'kestrel-onyx-144', role: 'superuser' } }); }
+    name: 'Nope', email: addr('nope'), password: 'kestrel-onyx-144', role: 'superuser' } }); }
   catch (e) { badRole = e.status === 400 && e.data.error === 'bad_role'; }
   ok(badRole, 'unknown role rejected');
 
@@ -90,7 +94,7 @@ function session() {
   console.log('\nnew login works');
   const danaS = session();
   const who = await danaS('/auth/login', { method: 'POST', body: {
-    email: 'dana@chriscollinsinc.com', password: 'cedar-harbor-208' } });
+    email: DANA, password: 'cedar-harbor-208' } });
   ok(who.user.name === 'Dana Reyes', 'new consultant can sign in');
   const engs = await danaS('/engagements');
   ok(Array.isArray(engs), 'consultant can read engagements');
@@ -101,7 +105,7 @@ function session() {
 
   forbidden = false;
   try { await danaS('/users', { method: 'POST', body: {
-    name: 'Self Promoted', email: 'sp@t.com', password: 'nimbus-quarry-802', role: 'admin' } }); }
+    name: 'Self Promoted', email: addr('sp'), password: 'nimbus-quarry-802', role: 'admin' } }); }
   catch (e) { forbidden = e.status === 403; }
   ok(forbidden, 'consultant cannot create logins');
 
@@ -113,7 +117,7 @@ function session() {
 
   const samS = session();
   await samS('/auth/login', { method: 'POST', body: {
-    email: 'sam@chriscollinsinc.com', password: 'lantern-pivot-733' } });
+    email: SAM, password: 'lantern-pivot-733' } });
   let notFound = false;
   try { await samS('/interviews/00000000-0000-0000-0000-000000000000/reopen', { method: 'POST', body: {} }); }
   catch (e) { notFound = e.status === 404; }
@@ -143,25 +147,25 @@ function session() {
   await admin('/users/' + consultant.id, { method: 'PATCH', body: { active: false } });
   let denied = false;
   try { await session()('/auth/login', { method: 'POST', body: {
-    email: 'dana@chriscollinsinc.com', password: 'cedar-harbor-208' } }); }
+    email: DANA, password: 'cedar-harbor-208' } }); }
   catch (e) { denied = e.status === 401; }
   ok(denied, 'disabled login cannot sign in');
 
   await admin('/users/' + consultant.id, { method: 'PATCH', body: { active: true } });
   const back = await session()('/auth/login', { method: 'POST', body: {
-    email: 'dana@chriscollinsinc.com', password: 'cedar-harbor-208' } });
+    email: DANA, password: 'cedar-harbor-208' } });
   ok(back.user.id === consultant.id, 're-enabled login works again');
 
   // ---- password reset by admin, and self-service change ----
   console.log('\npasswords');
   await admin(`/users/${consultant.id}/password`, { method: 'POST', body: { password: 'juniper-beacon-615' } });
   const reset = await session()('/auth/login', { method: 'POST', body: {
-    email: 'dana@chriscollinsinc.com', password: 'juniper-beacon-615' } });
+    email: DANA, password: 'juniper-beacon-615' } });
   ok(reset.user.id === consultant.id, 'admin password reset takes effect');
 
   const dana2 = session();
   await dana2('/auth/login', { method: 'POST', body: {
-    email: 'dana@chriscollinsinc.com', password: 'juniper-beacon-615' } });
+    email: DANA, password: 'juniper-beacon-615' } });
   let wrongCur = false;
   try { await dana2('/me/password', { method: 'POST', body: {
     current_password: 'not-it-at-all', password: 'ember-fathom-901' } }); }
@@ -171,7 +175,7 @@ function session() {
   await dana2('/me/password', { method: 'POST', body: {
     current_password: 'juniper-beacon-615', password: 'ember-fathom-901' } });
   const changed = await session()('/auth/login', { method: 'POST', body: {
-    email: 'dana@chriscollinsinc.com', password: 'ember-fathom-901' } });
+    email: DANA, password: 'ember-fathom-901' } });
   ok(changed.user.id === consultant.id, 'self-service password change takes effect');
 
   // ---- audit trail ----
