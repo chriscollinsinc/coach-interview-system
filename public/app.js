@@ -1174,6 +1174,28 @@ $('#logoutBtn').addEventListener('click', async () => {
   state.user = null; go('#/login');
 });
 
+// Theme. Dark is the default; the choice is a per-viewer convenience so it
+// lives in localStorage, wrapped because that throws in some privacy modes.
+(function initTheme() {
+  const btn = document.getElementById('themeBtn');
+  if (!btn) return;
+  const meta = document.querySelector('meta[name=theme-color]');
+  const apply = (theme) => {
+    if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#F2F2F2' : '#0D0D0D');
+    btn.title = theme === 'light' ? 'Switch to dark' : 'Switch to light';
+  };
+  let current = 'dark';
+  try { if (localStorage.getItem('cci.theme') === 'light') current = 'light'; } catch (e) {}
+  apply(current);
+  btn.addEventListener('click', () => {
+    current = current === 'light' ? 'dark' : 'light';
+    apply(current);
+    try { localStorage.setItem('cci.theme', current); } catch (e) {}
+  });
+})();
+
 // The logo file is optional: if public/icons/cci-logo.png is present it
 // replaces the text wordmark, otherwise the wordmark stands on its own.
 (function initBrand() {

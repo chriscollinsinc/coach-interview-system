@@ -1,13 +1,39 @@
+/* Dark is the default, not an OS-conditional variant. CCI's own site is
+   black-heavy, and the app is used on an iPad in a service drive where a dark
+   screen is easier on the eyes. Light is opt-in via data-theme="light" on
+   <html>, which the header toggle sets and remembers. */
 :root {
-  /* Chris Collins Inc. brand, sampled from chriscollinsinc.com.
-     Coral #F15F43 is the brand accent, but as text on white it only reaches
-     3.25:1, so light mode uses a deeper coral (#C92D0F, 5.43:1) for text and
-     button fills and keeps the pure brand coral for dark mode, where it reads
-     at 5.62:1. Every pairing in this file is verified at WCAG AA. */
   --brand-coral: #F15F43;
   --brand-gold:  #FAC359;
   --brand-ink:   #000005;
 
+  --bg: #0D0D0D;
+  --surface: #151515;
+  --surface-2: #1F1F1F;
+  --border: #2F2F2F;
+  --text: #FBFBFB;
+  --muted: #A0A0A0;
+  --accent: #F15F43;
+  --accent-soft: #2A1410;
+  --on-accent: #000005;
+  --good: #4EC98A;
+  --warn: #FAC359;
+  --bad: #FF6B60;
+
+  --radius: 10px;
+  --tap: 48px;
+
+  --font-display: Oswald, "Haettenschweiler", "Arial Narrow", "Helvetica Neue Condensed",
+                  system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  color-scheme: dark;
+}
+
+/* Light mode, chosen explicitly. The brand coral only reaches 3.25:1 as text
+   on white, so this uses a deeper coral (#C92D0F, 5.43:1). Both themes are
+   verified at WCAG AA for every pairing used in this file. */
+:root[data-theme="light"] {
   --bg: #F2F2F2;
   --surface: #FFFFFF;
   --surface-2: #E8E8E8;
@@ -21,31 +47,7 @@
   --warn: #8A5A00;
   --bad: #A81F17;
 
-  --radius: 10px;
-  --tap: 48px;
-
-  /* Oswald is the CCI display face. Self-host it at /fonts/ to keep the app
-     working offline in a dealership; if the files are absent the stack falls
-     through to a condensed system face without breaking anything. */
-  --font-display: Oswald, "Haettenschweiler", "Arial Narrow", "Helvetica Neue Condensed",
-                  system-ui, sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0D0D0D;
-    --surface: #151515;
-    --surface-2: #1F1F1F;
-    --border: #2F2F2F;
-    --text: #FBFBFB;
-    --muted: #A0A0A0;
-    --accent: #F15F43;
-    --accent-soft: #2A1410;
-    --on-accent: #000005;
-    --good: #4EC98A;
-    --warn: #FAC359;
-    --bad: #FF6B60;
-  }
+  color-scheme: light;
 }
 
 /* Oswald, self-hosted. Drop the woff2 files into public/fonts/ and these take
@@ -90,7 +92,7 @@ main { max-width: 900px; margin: 0 auto; padding: 16px; }
 .netpill { font-size: 12px; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
 .netpill.online { background: var(--accent-soft); color: var(--accent); }
 .netpill.offline { background: #4a2b13; color: #ffbe6b; }
-@media (prefers-color-scheme: light) { .netpill.offline { background: #fdf0dc; color: #8a5200; } }
+:root[data-theme="light"] .netpill.offline { background: #FDF0DC; color: #8A5200; }
 
 /* ---------- blocks ---------- */
 .card {
@@ -251,3 +253,18 @@ header.topbar { border-bottom: 1px solid var(--border); box-shadow: inset 0 -3px
 .brandhero .wordmark em { font-style: normal; color: var(--accent); }
 .brandhero .sub { font-size: 13px; color: var(--muted); letter-spacing: .03em;
   text-transform: uppercase; font-family: var(--font-display); margin-top: 4px; }
+
+
+/* ---------- theme toggle ---------- */
+.themetoggle {
+  flex: none; width: 40px; height: 40px; padding: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--border); border-radius: 50%;
+  background: var(--surface-2); color: var(--muted); cursor: pointer;
+}
+.themetoggle:active { opacity: .7; }
+.themetoggle svg { width: 19px; height: 19px; display: block; }
+.themetoggle .ico-sun { display: block; }
+.themetoggle .ico-moon { display: none; }
+:root[data-theme="light"] .themetoggle .ico-sun { display: none; }
+:root[data-theme="light"] .themetoggle .ico-moon { display: block; }
