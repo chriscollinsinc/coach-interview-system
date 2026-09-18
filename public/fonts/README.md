@@ -1,23 +1,21 @@
 # Oswald
 
-Oswald is the Chris Collins Inc. display typeface (headings, buttons, tags,
-stat tiles). It is licensed under the SIL Open Font License, so it can be
-self-hosted.
+Oswald is the Chris Collins Inc. display face: headings, buttons, tags, stat
+tiles and section labels. Body copy and form inputs deliberately stay on the
+system sans — Oswald is condensed and heavy, which is right for a headline and
+wrong for forty minutes of reading interview answers on an iPad.
 
-Self-hosting rather than loading from Google's CDN is deliberate: the app has to
-work on bad dealership wifi and fully offline, and the Content-Security-Policy
-in `src/server.js` allows fonts from this origin only.
+`oswald-500.woff2` and `oswald-700.woff2` are the latin subsets from the
+`@fontsource/oswald` package (12 KB each). Oswald is licensed under the SIL
+Open Font License; the licence is in `OFL.txt`.
 
-To install:
+These are served from this origin rather than a CDN on purpose: the app has to
+work on bad dealership wifi and fully offline, the Content-Security-Policy in
+`src/server.js` sets `font-src 'self'`, and the service worker precaches them.
 
-1. Go to fonts.google.com and search for Oswald.
-2. Download the family, or take just the two weights this app uses: 500 and 700.
-3. Convert or extract the woff2 files and drop them here as:
+To update, pull a newer copy and replace the two files:
 
-       public/fonts/oswald-500.woff2
-       public/fonts/oswald-700.woff2
-
-4. Commit and deploy. The @font-face rules in `public/styles.css` pick them up.
-
-Until those files exist, `--font-display` falls through to a condensed system
-face. Nothing breaks — the brand typography is just approximated.
+    npm pack @fontsource/oswald
+    tar -xzf fontsource-oswald-*.tgz
+    cp package/files/oswald-latin-500-normal.woff2 public/fonts/oswald-500.woff2
+    cp package/files/oswald-latin-700-normal.woff2 public/fonts/oswald-700.woff2

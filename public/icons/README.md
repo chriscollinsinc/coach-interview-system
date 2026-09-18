@@ -1,15 +1,16 @@
-# Brand logo
+# Brand assets
 
-Drop the CCI logo here as:
+| File | Used for |
+|---|---|
+| `cci-logo.png` | The mark as supplied. Shown in light theme. |
+| `cci-logo-dark.png` | Reversed for dark backgrounds. Generated from the same file: the beard becomes light and the knocked-out face becomes dark, while the coral badge and its lettering are left exactly as drawn. |
+| `icon-192.png`, `icon-512.png` | Home-screen icons — the reversed mark centred on brand black, inside the 74% safe zone that maskable icons crop to. |
 
-    public/icons/cci-logo.png     (or .svg, updating the src in index.html)
+The dark variant exists because the supplied mark is a near-black silhouette,
+which disappears against the `#0D0D0D` background. Do not solve this by
+inverting in CSS: `filter: invert()` would turn the coral badge cyan.
 
-The header and the sign-in screen look for it. If the file is absent the app
-falls back to a styled "CHRIS**COLLINS**" wordmark, so a missing logo never
-leaves a broken image on screen.
-
-Recommended: a transparent PNG at least 2x the display height (the header
-renders it at 26px, the sign-in hero at 62px), or an SVG.
-
-`icon-192.png` / `icon-512.png` are the home-screen icons, generated in the
-brand colours. Replace them with the real mark when you have a square version.
+If the logo is ever updated, regenerate the dark variant and the icons rather
+than editing them by hand — a plain black-to-white recolour merges the beard
+and the knocked-out face into one blob, and a plain dilation of the badge mask
+bleeds over the face.

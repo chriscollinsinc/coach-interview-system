@@ -146,6 +146,15 @@ const SURVEY_LABEL = { technician: 'Technician', service_advisor: 'Service Advis
   parts: 'Parts', support_staff: 'Support Staff' };
 const surveyLabel = (k) => SURVEY_LABEL[k] ||
   String(k || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+// "Service Advisor · Service Advisor" reads like a bug. Only name the survey
+// when it differs from the dealer's own job title.
+function subtitleFor(p) {
+  const title = (p.position_title || '').trim();
+  const survey = surveyLabel(p.template_key);
+  if (!title) return survey || '';
+  if (!survey) return title;
+  return title.toLowerCase() === survey.toLowerCase() ? title : `${title} · ${survey}`;
+}
 const esc = (s) => String(s ?? '');
 const go = (hash) => { location.hash = hash; };
 
@@ -211,7 +220,8 @@ async function route() {
 
 function brandHero(sub) {
   return el('div', { class: 'brandhero' },
-    el('div', { class: 'wordmark' }, 'Chris', el('em', {}, 'Collins'), ' Inc.'),
+    el('img', { class: 'logo-dark', src: '/icons/cci-logo-dark.png', alt: 'Chris Collins Inc.' }),
+    el('img', { class: 'logo-light', src: '/icons/cci-logo.png', alt: '', 'aria-hidden': 'true' }),
     el('div', { class: 'sub' }, sub));
 }
 
@@ -503,8 +513,7 @@ async function screenStore(id) {
     el('div', { class: 'avatar' }, initials(p.first_name, p.last_name)),
     el('div', { class: 'grow' },
       el('div', {}, `${p.first_name} ${p.last_name}`),
-      el('div', { class: 'muted small' },
-        [p.position_title, surveyLabel(p.template_key)].filter(Boolean).join(' · '))),
+      el('div', { class: 'muted small' }, subtitleFor(p))),
     tagFor(p),
     p.template_key
       ? el('button', { class: 'btn',
@@ -1194,21 +1203,6 @@ $('#logoutBtn').addEventListener('click', async () => {
     apply(current);
     try { localStorage.setItem('cci.theme', current); } catch (e) {}
   });
-})();
-
-// The logo file is optional: if public/icons/cci-logo.png is present it
-// replaces the text wordmark, otherwise the wordmark stands on its own.
-(function initBrand() {
-  const img = document.getElementById('brandLogo');
-  if (!img) return;
-  img.addEventListener('load', () => {
-    if (img.naturalWidth > 0) {
-      img.hidden = false;
-      const wm = img.parentNode.querySelector('.wordmark');
-      if (wm) wm.hidden = true;
-    }
-  });
-  img.addEventListener('error', () => { img.remove(); });
 })();
 
 if ('serviceWorker' in navigator) {

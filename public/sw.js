@@ -1,8 +1,10 @@
 /* Offline shell. App code and styles are cached so the interview runner opens
    with no connection; API traffic is never cached (stale answers are worse
    than no answers — the IndexedDB draft is the offline source of truth). */
-const CACHE = 'cci-interviews-v1';
-const SHELL = ['/', '/index.html', '/app.js', '/styles.css', '/manifest.webmanifest'];
+const CACHE = 'cci-interviews-v2';   // bumped: brand assets and fonts added
+const SHELL = ['/', '/index.html', '/app.js', '/styles.css', '/manifest.webmanifest',
+  '/icons/cci-logo.png', '/icons/cci-logo-dark.png',
+  '/fonts/oswald-500.woff2', '/fonts/oswald-700.woff2'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
